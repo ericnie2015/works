@@ -7,7 +7,8 @@ It auto-builds `Works -> Series -> Photo` directly from your repository folders.
 
 - Every folder under `images/` becomes one series.
 - Every image file inside that folder is shown automatically.
-- No `data.js`, no `thumbs` folder, no manual photo list.
+- No `data.js` and no manual photo list.
+- If `images/<series>/thumbs/` exists, overview pages use those thumbnails automatically.
 
 Example:
 
@@ -29,8 +30,9 @@ Example:
 
 1. Create folders under `images/` (folder name = series slug).
 2. Upload images into each folder.
-3. Commit and push to `main`.
-4. Refresh your Pages site in about 30-90 seconds.
+3. (Recommended) Add smaller copies with the same filenames to `images/<series>/thumbs/`.
+4. Commit and push to `main`.
+5. Refresh your Pages site in about 30-90 seconds.
 
 ## Optional Config
 

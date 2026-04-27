@@ -116,6 +116,20 @@
       const photos = entries
         .filter((e) => e.type === "file" && imageExt.test(e.name))
         .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+      let thumbByName = {};
+      const thumbDir = entries.find((e) => e.type === "dir" && e.name.toLowerCase() === "thumbs");
+      if (thumbDir) {
+        try {
+          const thumbEntries = await fetchContents(`${imagesRoot}/${slug}/thumbs`);
+          thumbByName = Object.fromEntries(
+            thumbEntries
+              .filter((e) => e.type === "file" && imageExt.test(e.name))
+              .map((e) => [e.name, e.download_url])
+          );
+        } catch (_) {
+          thumbByName = {};
+        }
+      }
 
       grid.innerHTML = "";
       if (!photos.length) {
@@ -127,8 +141,9 @@
         const card = document.createElement("a");
         card.className = "thumb-card";
         card.href = `photo.html?series=${encodeURIComponent(slug)}&file=${encodeURIComponent(p.name)}`;
+        const previewUrl = thumbByName[p.name] || p.download_url;
         card.innerHTML = `
-          <img src="${p.download_url}" alt="${fileName(p.name)}" loading="lazy" />
+          <img src="${previewUrl}" alt="${fileName(p.name)}" loading="lazy" />
           <div class="thumb-meta">
             <p class="thumb-title">${fileName(p.name)}</p>
           </div>
