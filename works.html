@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Works</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <h1 class="site-title" id="site-title">My Photography</h1>
+        <nav class="top-nav" id="top-nav"></nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <h2 class="page-title">Works</h2>
+      <p class="page-subtitle">Series Index</p>
+      <ul class="series-list" id="series-list"></ul>
+    </main>
+
+    <script src="data.js"></script>
+    <script>
+      const data = window.PORTFOLIO_DATA;
+      document.getElementById("site-title").textContent = data.siteTitle || "My Photography";
+
+      const nav = document.getElementById("top-nav");
+      (data.nav || []).forEach((item) => {
+        const a = document.createElement("a");
+        a.href = item.href;
+        a.textContent = item.label;
+        nav.appendChild(a);
+      });
+
+      const list = document.getElementById("series-list");
+      (data.series || []).forEach((s) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = `series.html?slug=${encodeURIComponent(s.slug)}`;
+        a.textContent = s.title;
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+    </script>
+  </body>
+</html>
