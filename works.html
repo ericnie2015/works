@@ -14,34 +14,17 @@
       </div>
     </header>
 
-    <main class="container">
+    <main class="container" id="main-content">
       <h2 class="page-title">Works</h2>
-      <p class="page-subtitle">Series Index</p>
+      <p class="page-subtitle">Series Index (auto from images folders)</p>
       <ul class="series-list" id="series-list"></ul>
     </main>
 
-    <script src="data.js"></script>
+    <script src="site-config.js"></script>
+    <script src="app.js"></script>
     <script>
-      const data = window.PORTFOLIO_DATA;
-      document.getElementById("site-title").textContent = data.siteTitle || "My Photography";
-
-      const nav = document.getElementById("top-nav");
-      (data.nav || []).forEach((item) => {
-        const a = document.createElement("a");
-        a.href = item.href;
-        a.textContent = item.label;
-        nav.appendChild(a);
-      });
-
-      const list = document.getElementById("series-list");
-      (data.series || []).forEach((s) => {
-        const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.href = `series.html?slug=${encodeURIComponent(s.slug)}`;
-        a.textContent = s.title;
-        li.appendChild(a);
-        list.appendChild(li);
-      });
+      window.PortfolioApp.initHeader();
+      window.PortfolioApp.loadSeriesList();
     </script>
   </body>
 </html>

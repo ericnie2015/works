@@ -28,44 +28,11 @@
       </p>
     </main>
 
-    <script src="data.js"></script>
+    <script src="site-config.js"></script>
+    <script src="app.js"></script>
     <script>
-      const data = window.PORTFOLIO_DATA;
-      document.getElementById("site-title").textContent = data.siteTitle || "My Photography";
-
-      const nav = document.getElementById("top-nav");
-      (data.nav || []).forEach((item) => {
-        const a = document.createElement("a");
-        a.href = item.href;
-        a.textContent = item.label;
-        nav.appendChild(a);
-      });
-
-      const params = new URLSearchParams(window.location.search);
-      const seriesSlug = params.get("series");
-      const photoId = params.get("photo");
-
-      const series = (data.series || []).find((s) => s.slug === seriesSlug);
-      const photo = series ? (series.photos || []).find((p) => p.id === photoId) : null;
-
-      if (!series || !photo) {
-        document.getElementById("main-content").innerHTML = `
-          <p class="error">Photo not found.</p>
-          <p><a href="works.html">Back to Works</a></p>
-        `;
-      } else {
-        document.title = `${photo.title || photo.id} | ${data.siteTitle}`;
-        document.getElementById("photo-title").textContent = photo.title || photo.id;
-        document.getElementById("photo-subtitle").textContent = `${series.title} ${series.years ? "- " + series.years : ""}`;
-
-        const img = document.getElementById("photo-image");
-        img.src = photo.full;
-        img.alt = photo.title || photo.id;
-
-        document.getElementById("photo-caption").textContent = photo.caption || "";
-        document.getElementById("back-link").href = `series.html?slug=${encodeURIComponent(series.slug)}`;
-        document.getElementById("back-link").textContent = `Back to ${series.title}`;
-      }
+      window.PortfolioApp.initHeader();
+      window.PortfolioApp.loadPhotoPage();
     </script>
   </body>
 </html>

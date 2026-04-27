@@ -1,26 +1,46 @@
-# Photography Portfolio (Static, GitHub Pages)
+# Photography Portfolio (Auto from `images/`)
 
-This is a plain HTML/CSS/JS photography website inspired by a "Works -> Series -> Photo" structure.
+This is a plain HTML/CSS/JS photography website for GitHub Pages.  
+It auto-builds `Works -> Series -> Photo` directly from your repository folders.
+
+## How Auto Mode Works
+
+- Every folder under `images/` becomes one series.
+- Every image file inside that folder is shown automatically.
+- No `data.js`, no `thumbs` folder, no manual photo list.
+
+Example:
+
+- `images/street-notes/IMG_0012.jpg`
+- `images/street-notes/IMG_0013.jpg`
+- `images/coastal-wind/DSC_4410.jpg`
 
 ## Files
 
 - `index.html`: redirects to `works.html`
-- `works.html`: series list page
-- `series.html`: series gallery page
+- `works.html`: series list page (auto loads folders)
+- `series.html`: photo grid page (auto loads images in one folder)
 - `photo.html`: single photo page
-- `data.js`: all site content (title, nav, series, photos)
+- `app.js`: GitHub API loader logic
+- `site-config.js`: site title/nav/repo config
 - `styles.css`: visual style
 
 ## Add Your Photos
 
-1. Create folders under `images/`, for example:
-   - `images/street-notes/thumbs/`
-   - `images/street-notes/full/`
-2. Put thumbnail files into `thumbs/` and large files into `full/`.
-3. Update `data.js`:
-   - `siteTitle`
-   - `series[].title`, `years`, `description`
-   - each `photos[]` item: `id`, `title`, `thumb`, `full`, `caption`
+1. Create folders under `images/` (folder name = series slug).
+2. Upload images into each folder.
+3. Commit and push to `main`.
+4. Refresh your Pages site in about 30-90 seconds.
+
+## Optional Config
+
+Edit `site-config.js` if needed:
+
+- `siteTitle`
+- `nav`
+- `owner`
+- `repo`
+- `imagesRoot`
 
 ## Local Preview
 

@@ -21,49 +21,11 @@
       <p><a class="muted" href="works.html">Back to Works</a></p>
     </main>
 
-    <script src="data.js"></script>
+    <script src="site-config.js"></script>
+    <script src="app.js"></script>
     <script>
-      const data = window.PORTFOLIO_DATA;
-      document.getElementById("site-title").textContent = data.siteTitle || "My Photography";
-
-      const nav = document.getElementById("top-nav");
-      (data.nav || []).forEach((item) => {
-        const a = document.createElement("a");
-        a.href = item.href;
-        a.textContent = item.label;
-        nav.appendChild(a);
-      });
-
-      const params = new URLSearchParams(window.location.search);
-      const slug = params.get("slug");
-      const series = (data.series || []).find((s) => s.slug === slug);
-
-      if (!series) {
-        document.querySelector("main").innerHTML = `
-          <p class="error">Series not found.</p>
-          <p><a href="works.html">Back to Works</a></p>
-        `;
-      } else {
-        document.title = `${series.title} | ${data.siteTitle}`;
-        document.getElementById("series-title").textContent = series.title;
-        document.getElementById("series-subtitle").textContent =
-          `${series.years || ""}${series.description ? " - " + series.description : ""}`;
-
-        const grid = document.getElementById("photo-grid");
-        (series.photos || []).forEach((p) => {
-          const card = document.createElement("a");
-          card.className = "thumb-card";
-          card.href = `photo.html?series=${encodeURIComponent(series.slug)}&photo=${encodeURIComponent(p.id)}`;
-
-          card.innerHTML = `
-            <img src="${p.thumb}" alt="${p.title || p.id}" loading="lazy" />
-            <div class="thumb-meta">
-              <p class="thumb-title">${p.title || p.id}</p>
-            </div>
-          `;
-          grid.appendChild(card);
-        });
-      }
+      window.PortfolioApp.initHeader();
+      window.PortfolioApp.loadSeriesPage();
     </script>
   </body>
 </html>
