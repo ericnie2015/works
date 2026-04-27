@@ -1,5 +1,5 @@
 window.SITE_CONFIG = {
-  siteTitle: "Your Name",
+  siteTitle: "ERIC NIE",
   nav: [
     { label: "Works", href: "works.html" }
   ],
