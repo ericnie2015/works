@@ -1,6 +1,8 @@
 (function () {
   const cfg = window.SITE_CONFIG || {};
   const imageExt = /\.(jpg|jpeg|png|webp|gif)$/i;
+  const INITIAL_BATCH = 40;
+  const LOAD_BATCH = 40;
 
   function inferRepoFromLocation() {
     const host = window.location.hostname;
@@ -129,27 +131,54 @@
         return;
       }
 
-      photos.forEach((p) => {
-        const card = document.createElement("a");
-        card.className = "thumb-card";
-        card.href = `photo.html?series=${encodeURIComponent(slug)}&file=${encodeURIComponent(p.name)}`;
-        const fullUrl = p.download_url;
-        const previewUrl = rawFileUrl(`${imagesRoot}/${slug}/thumbs/${p.name}`);
-        card.innerHTML = `
-          <img src="${previewUrl}" alt="${fileName(p.name)}" loading="lazy" decoding="async" />
-          <div class="thumb-meta">
-            <p class="thumb-title">${fileName(p.name)}</p>
-          </div>
-        `;
-        const img = card.querySelector("img");
-        img.addEventListener("error", () => {
-          // If matching thumbs file is missing, gracefully use full image.
-          if (img.src !== fullUrl) {
-            img.src = fullUrl;
+      let rendered = 0;
+      const renderBatch = (count) => {
+        const end = Math.min(rendered + count, photos.length);
+        for (let i = rendered; i < end; i += 1) {
+          const p = photos[i];
+          const card = document.createElement("a");
+          card.className = "thumb-card";
+          card.href = `photo.html?series=${encodeURIComponent(slug)}&file=${encodeURIComponent(p.name)}`;
+          const fullUrl = p.download_url;
+          const previewUrl = rawFileUrl(`${imagesRoot}/${slug}/thumbs/${p.name}`);
+          card.innerHTML = `
+            <img src="${previewUrl}" alt="${fileName(p.name)}" loading="lazy" decoding="async" />
+            <div class="thumb-meta">
+              <p class="thumb-title">${fileName(p.name)}</p>
+            </div>
+          `;
+          const img = card.querySelector("img");
+          img.addEventListener("error", () => {
+            if (img.src !== fullUrl) {
+              img.src = fullUrl;
+            }
+          });
+          grid.appendChild(card);
+        }
+        rendered = end;
+      };
+
+      renderBatch(INITIAL_BATCH);
+
+      if (rendered < photos.length) {
+        const moreWrap = document.createElement("div");
+        moreWrap.className = "load-more-wrap";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "load-more-btn";
+        btn.textContent = `Load more (${photos.length - rendered} remaining)`;
+        btn.addEventListener("click", () => {
+          renderBatch(LOAD_BATCH);
+          const remaining = photos.length - rendered;
+          if (remaining <= 0) {
+            moreWrap.remove();
+          } else {
+            btn.textContent = `Load more (${remaining} remaining)`;
           }
         });
-        grid.appendChild(card);
-      });
+        moreWrap.appendChild(btn);
+        grid.parentNode.insertBefore(moreWrap, grid.nextSibling);
+      }
     } catch (err) {
       grid.innerHTML = '<p class="error">Failed to load this series.</p>';
     }
