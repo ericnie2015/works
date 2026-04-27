@@ -32,6 +32,12 @@
     return decodeURIComponent(path.split("/").pop() || "");
   }
 
+  function rawFileUrl(path) {
+    const { owner, repo } = getRepoInfo();
+    const encodedPath = path.split("/").map(encodeURIComponent).join("/");
+    return `https://raw.githubusercontent.com/${owner}/${repo}/main/${encodedPath}`;
+  }
+
   function apiUrl(path) {
     const { owner, repo } = getRepoInfo();
     return `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
@@ -116,20 +122,6 @@
       const photos = entries
         .filter((e) => e.type === "file" && imageExt.test(e.name))
         .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-      let thumbByName = {};
-      const thumbDir = entries.find((e) => e.type === "dir" && e.name.toLowerCase() === "thumbs");
-      if (thumbDir) {
-        try {
-          const thumbEntries = await fetchContents(`${imagesRoot}/${slug}/thumbs`);
-          thumbByName = Object.fromEntries(
-            thumbEntries
-              .filter((e) => e.type === "file" && imageExt.test(e.name))
-              .map((e) => [e.name, e.download_url])
-          );
-        } catch (_) {
-          thumbByName = {};
-        }
-      }
 
       grid.innerHTML = "";
       if (!photos.length) {
@@ -141,13 +133,21 @@
         const card = document.createElement("a");
         card.className = "thumb-card";
         card.href = `photo.html?series=${encodeURIComponent(slug)}&file=${encodeURIComponent(p.name)}`;
-        const previewUrl = thumbByName[p.name] || p.download_url;
+        const fullUrl = p.download_url;
+        const previewUrl = rawFileUrl(`${imagesRoot}/${slug}/thumbs/${p.name}`);
         card.innerHTML = `
-          <img src="${previewUrl}" alt="${fileName(p.name)}" loading="lazy" />
+          <img src="${previewUrl}" alt="${fileName(p.name)}" loading="lazy" decoding="async" />
           <div class="thumb-meta">
             <p class="thumb-title">${fileName(p.name)}</p>
           </div>
         `;
+        const img = card.querySelector("img");
+        img.addEventListener("error", () => {
+          // If matching thumbs file is missing, gracefully use full image.
+          if (img.src !== fullUrl) {
+            img.src = fullUrl;
+          }
+        });
         grid.appendChild(card);
       });
     } catch (err) {
@@ -175,8 +175,7 @@
 
     const { imagesRoot } = getRepoInfo();
     const img = document.getElementById("photo-image");
-    const encodedPath = `${imagesRoot}/${slug}/${file}`.split("/").map(encodeURIComponent).join("/");
-    img.src = `https://raw.githubusercontent.com/${getRepoInfo().owner}/${getRepoInfo().repo}/main/${encodedPath}`;
+    img.src = rawFileUrl(`${imagesRoot}/${slug}/${file}`);
     img.alt = title;
   }
 
