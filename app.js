@@ -23,11 +23,9 @@
   }
 
   function titleFromSlug(slug) {
-    return slug
-      .replace(/[-_]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .replace(/\b\w/g, (c) => c.toUpperCase());
+    const map = cfg.seriesNames || {};
+    if (map[slug]) return map[slug];
+    return slug.replace(/\s+/g, " ").trim();
   }
 
   function fileName(path) {
