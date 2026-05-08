@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Photo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <h1 class="site-title" id="site-title">My Photography</h1>
+        <nav class="top-nav" id="top-nav"></nav>
+      </div>
+    </header>
+
+    <main class="container" id="main-content">
+      <p class="page-subtitle" id="photo-subtitle"></p>
+
+      <div class="photo-frame">
+        <img id="photo-image" src="" alt="" />
+        <div class="photo-caption" id="photo-caption"></div>
+      </div>
+
+      <p>
+        <a class="muted" id="back-link" href="works.html">Back</a>
+      </p>
+    </main>
+
+    <script src="site-config.js"></script>
+    <script src="app.js"></script>
+    <script>
+      window.PortfolioApp.initHeader();
+      window.PortfolioApp.loadPhotoPage();
+    </script>
+  </body>
+</html>
