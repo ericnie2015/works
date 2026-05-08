@@ -1,7 +1,7 @@
 window.SITE_CONFIG = {
   siteTitle: "ERIC NIE",
   nav: [
-    { label: "all snapshot photos taken by LCA+ and kodak film", href: "works.html" }
+    { label: "Works", href: "works.html" }
   ],
   owner: "ericnie2015",
   repo: "works",
