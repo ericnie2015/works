@@ -195,7 +195,7 @@
 
     const title = fileName(file);
     const seriesTitle = titleFromSlug(slug);
-    document.getElementById("photo-title").textContent = title;
+    document.getElementById("photo-title").textContent = "";
     document.getElementById("photo-subtitle").textContent = `${seriesTitle}`;
     document.getElementById("photo-caption").textContent = title;
     document.getElementById("back-link").href = `series.html?slug=${encodeURIComponent(slug)}`;
