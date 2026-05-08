@@ -15,7 +15,7 @@
     </header>
 
     <main class="container" id="main-content">
-      <h2 class="page-title">Projects</h2>
+      <h2 class="page-title">Works</h2>
       <p class="page-subtitle">Series Index (auto from images folders)</p>
       <ul class="series-list" id="series-list"></ul>
     </main>
