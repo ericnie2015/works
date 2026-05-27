@@ -1,8 +1,8 @@
 (function () {
   const cfg = window.SITE_CONFIG || {};
   const imageExt = /\.(jpg|jpeg|png|webp|gif)$/i;
-  const INITIAL_BATCH = 20;
-  const LOAD_BATCH = 20;
+  const INITIAL_BATCH = 24;
+  const LOAD_BATCH = 24;
 
   function inferRepoFromLocation() {
     const host = window.location.hostname;
