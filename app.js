@@ -55,6 +55,14 @@
     return res.json();
   }
 
+  async function fetchSeriesPhotos(slug) {
+    const { imagesRoot } = getRepoInfo();
+    const entries = await fetchContents(`${imagesRoot}/${slug}`);
+    return entries
+      .filter((e) => e.type === "file" && imageExt.test(e.name))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  }
+
   function renderError(targetId, message) {
     const node = document.getElementById(targetId);
     if (!node) return;
@@ -120,10 +128,7 @@
     grid.innerHTML = '<p class="muted">Loading...</p>';
     try {
       const { imagesRoot } = getRepoInfo();
-      const entries = await fetchContents(`${imagesRoot}/${slug}`);
-      const photos = entries
-        .filter((e) => e.type === "file" && imageExt.test(e.name))
-        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+      const photos = await fetchSeriesPhotos(slug);
 
       grid.innerHTML = "";
       if (!photos.length) {
@@ -141,12 +146,7 @@
           card.href = `photo.html?series=${encodeURIComponent(slug)}&file=${encodeURIComponent(p.name)}`;
           const fullUrl = p.download_url;
           const previewUrl = rawFileUrl(`${imagesRoot}/${slug}/thumbs/${p.name}`);
-          card.innerHTML = `
-            <img src="${previewUrl}" alt="${fileName(p.name)}" loading="lazy" decoding="async" />
-            <div class="thumb-meta">
-              <p class="thumb-title">${fileName(p.name)}</p>
-            </div>
-          `;
+          card.innerHTML = `<img src="${previewUrl}" alt="${fileName(p.name)}" loading="lazy" decoding="async" />`;
           const img = card.querySelector("img");
           img.addEventListener("error", () => {
             if (img.src !== fullUrl) {
@@ -162,7 +162,7 @@
 
       if (rendered < photos.length) {
         const moreWrap = document.createElement("div");
-        moreWrap.className = "load-more-wrap";
+        moreWrap.className = "load-more-wrap container";
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "load-more-btn";
@@ -193,19 +193,86 @@
       return;
     }
 
-    const title = fileName(file);
     const seriesTitle = titleFromSlug(slug);
     document.getElementById("photo-title").textContent = "";
     document.getElementById("photo-subtitle").textContent = `${seriesTitle}`;
-    document.getElementById("photo-caption").textContent = title;
     document.getElementById("back-link").href = `series.html?slug=${encodeURIComponent(slug)}`;
     document.getElementById("back-link").textContent = `Back to ${seriesTitle}`;
-    document.title = `${title} | ${cfg.siteTitle || "My Photography"}`;
 
     const { imagesRoot } = getRepoInfo();
     const img = document.getElementById("photo-image");
-    img.src = rawFileUrl(`${imagesRoot}/${slug}/${file}`);
-    img.alt = title;
+    const caption = document.getElementById("photo-caption");
+
+    const photoUrl = (name) =>
+      `photo.html?series=${encodeURIComponent(slug)}&file=${encodeURIComponent(name)}`;
+
+    const showPhoto = (photo, { updateHistory = false, replace = false } = {}) => {
+      const title = fileName(photo.name);
+      img.src = rawFileUrl(`${imagesRoot}/${slug}/${photo.name}`);
+      img.alt = title;
+      caption.textContent = title;
+      document.title = `${title} | ${cfg.siteTitle || "My Photography"}`;
+      if (updateHistory) {
+        const state = { series: slug, file: photo.name };
+        const url = photoUrl(photo.name);
+        if (replace) {
+          history.replaceState(state, "", url);
+        } else {
+          history.pushState(state, "", url);
+        }
+      }
+    };
+
+    const findIndex = (photos, name) => {
+      const decoded = decodeURIComponent(name);
+      return photos.findIndex((p) => p.name === name || p.name === decoded);
+    };
+
+    try {
+      const photos = await fetchSeriesPhotos(slug);
+      if (!photos.length) {
+        renderError("main-content", "No images in this series.");
+        return;
+      }
+
+      let index = findIndex(photos, file);
+      if (index < 0) index = 0;
+
+      showPhoto(photos[index], { updateHistory: true, replace: true });
+
+      const goTo = (nextIndex, { historyMode = "push" } = {}) => {
+        if (nextIndex < 0 || nextIndex >= photos.length) return;
+        index = nextIndex;
+        showPhoto(photos[index], {
+          updateHistory: true,
+          replace: historyMode === "replace"
+        });
+      };
+
+      document.addEventListener("keydown", (e) => {
+        if (e.target.closest("input, textarea, select, [contenteditable='true']")) return;
+
+        let delta = 0;
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp") delta = -1;
+        else if (e.key === "ArrowRight" || e.key === "ArrowDown") delta = 1;
+        else return;
+
+        e.preventDefault();
+        goTo(index + delta);
+      });
+
+      window.addEventListener("popstate", () => {
+        const currentFile = new URLSearchParams(window.location.search).get("file");
+        if (!currentFile) return;
+        const i = findIndex(photos, currentFile);
+        if (i >= 0) {
+          index = i;
+          showPhoto(photos[index]);
+        }
+      });
+    } catch (err) {
+      showPhoto({ name: file });
+    }
   }
 
   window.PortfolioApp = {
