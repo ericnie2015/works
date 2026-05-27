@@ -119,7 +119,6 @@
         list.innerHTML = '<li class="muted">No series found under images/</li>';
         return;
       }
-
       const cards = series.map((s) => {
         const li = document.createElement("li");
         li.className = "series-card";

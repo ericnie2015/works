@@ -95,6 +95,10 @@ a {
   align-items: flex-start;
 }
 
+.works-page .container {
+  width: min(1400px, 96vw);
+}
+
 .series-card {
   flex: 0 1 200px;
   max-width: 240px;
@@ -113,6 +117,7 @@ a {
   margin-bottom: 10px;
   background: #fff;
   line-height: 0;
+  min-height: 120px;
 }
 
 .series-card-thumb img {
@@ -158,7 +163,7 @@ a {
   vertical-align: top;
 }
 
-/* Series gallery: edge-to-edge, 5 per row, no visible frames */
+/* Series gallery: edge-to-edge, 6 per row, no visible frames */
 .series-main {
   width: 100%;
   max-width: none;
@@ -172,7 +177,7 @@ a {
 
 .series-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   column-gap: 12px;
   row-gap: 90px;
   width: 100%;
