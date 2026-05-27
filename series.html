@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Series</title>
+    <link rel="stylesheet" href="styles.css?v=6" />
+  </head>
+  <body class="series-page">
+    <header class="site-header">
+      <div class="container">
+        <h1 class="site-title" id="site-title">My Photography</h1>
+        <nav class="top-nav" id="top-nav"></nav>
+      </div>
+    </header>
+
+    <main class="series-main">
+      <div class="series-intro container">
+        <h2 class="page-title" id="series-title">Series</h2>
+        <p class="page-subtitle" id="series-subtitle"></p>
+      </div>
+      <div class="series-grid" id="photo-grid"></div>
+      <p class="series-back container"><a class="muted" href="works.html">Back to Works</a></p>
+    </main>
+
+    <script src="site-config.js"></script>
+    <script src="app.js"></script>
+    <script>
+      window.PortfolioApp.initHeader();
+      window.PortfolioApp.loadSeriesPage();
+    </script>
+  </body>
+</html>
