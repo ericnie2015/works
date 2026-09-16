@@ -239,6 +239,11 @@ a {
   cursor: default;
   -webkit-user-drag: none;
   user-select: none;
+  transition: opacity 0.2s ease;
+}
+
+.photo-stage.is-loading img {
+  opacity: 0.88;
 }
 
 .photo-caption {

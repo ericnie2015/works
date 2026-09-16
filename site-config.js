@@ -6,6 +6,8 @@ window.SITE_CONFIG = {
   owner: "ericnie2015",
   repo: "works",
   imagesRoot: "images",
+  imageCdn: "jsdelivr",
+  branch: "main",
   seriesNames: {
     "America Rescan": "America Rescan"
   }
