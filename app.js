@@ -34,6 +34,30 @@
     return decodeURIComponent(path.split("/").pop() || "");
   }
 
+  function getContainImageRect(img) {
+    const rect = img.getBoundingClientRect();
+    const nw = img.naturalWidth;
+    const nh = img.naturalHeight;
+    if (!nw || !nh) return null;
+    const scale = Math.min(rect.width / nw, rect.height / nh);
+    const w = nw * scale;
+    const h = nh * scale;
+    const left = rect.left + (rect.width - w) / 2;
+    const top = rect.top + (rect.height - h) / 2;
+    return { left, top, right: left + w, bottom: top + h };
+  }
+
+  function isPointOnDisplayedImage(img, clientX, clientY) {
+    const imageRect = getContainImageRect(img);
+    if (!imageRect) return false;
+    return (
+      clientX >= imageRect.left &&
+      clientX <= imageRect.right &&
+      clientY >= imageRect.top &&
+      clientY <= imageRect.bottom
+    );
+  }
+
   function rawFileUrl(path) {
     const { owner, repo } = getRepoInfo();
     const encodedPath = path.split("/").map(encodeURIComponent).join("/");
@@ -250,26 +274,17 @@
     const { imagesRoot } = getRepoInfo();
     const img = document.getElementById("photo-image");
     const caption = document.getElementById("photo-caption");
-    const prevBtn = document.getElementById("photo-prev");
-    const nextBtn = document.getElementById("photo-next");
     const stage = document.querySelector(".photo-stage");
 
     const photoUrl = (name) =>
       `photo.html?series=${encodeURIComponent(slug)}&file=${encodeURIComponent(name)}`;
 
-    const updateNavButtons = (photoCount, currentIndex) => {
-      if (!prevBtn || !nextBtn) return;
-      prevBtn.disabled = currentIndex <= 0;
-      nextBtn.disabled = currentIndex >= photoCount - 1;
-    };
-
-    const showPhoto = (photo, photoCount, currentIndex, { updateHistory = false, replace = false } = {}) => {
+    const showPhoto = (photo, { updateHistory = false, replace = false } = {}) => {
       const title = fileName(photo.name);
       img.src = rawFileUrl(`${imagesRoot}/${slug}/${photo.name}`);
       img.alt = title;
       caption.textContent = title;
       document.title = `${title} | ${cfg.siteTitle || "My Photography"}`;
-      updateNavButtons(photoCount, currentIndex);
       if (updateHistory) {
         const state = { series: slug, file: photo.name };
         const url = photoUrl(photo.name);
@@ -296,35 +311,21 @@
       let index = findIndex(photos, file);
       if (index < 0) index = 0;
 
-      showPhoto(photos[index], photos.length, index, { updateHistory: true, replace: true });
+      showPhoto(photos[index], { updateHistory: true, replace: true });
 
       const goTo = (nextIndex, { historyMode = "push" } = {}) => {
         if (nextIndex < 0 || nextIndex >= photos.length) return;
         index = nextIndex;
-        showPhoto(photos[index], photos.length, index, {
+        showPhoto(photos[index], {
           updateHistory: true,
           replace: historyMode === "replace"
         });
       };
 
-      if (prevBtn) {
-        prevBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          goTo(index - 1);
-        });
-      }
-      if (nextBtn) {
-        nextBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          goTo(index + 1);
-        });
-      }
       if (stage) {
         stage.addEventListener("click", (e) => {
-          if (e.target.closest(".photo-nav")) return;
           if (e.button !== 0) return;
+          if (isPointOnDisplayedImage(img, e.clientX, e.clientY)) return;
           const rect = stage.getBoundingClientRect();
           const x = e.clientX - rect.left;
           goTo(x < rect.width / 2 ? index - 1 : index + 1);
@@ -349,12 +350,11 @@
         const i = findIndex(photos, currentFile);
         if (i >= 0) {
           index = i;
-          showPhoto(photos[index], photos.length, index);
+          showPhoto(photos[index]);
         }
       });
     } catch (err) {
-      showPhoto({ name: file }, 1, 0);
-      updateNavButtons(1, 0);
+      showPhoto({ name: file });
     }
   }
 
