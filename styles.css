@@ -243,7 +243,7 @@ a {
 }
 
 .photo-stage.is-loading img {
-  opacity: 0.88;
+  opacity: 0.55;
 }
 
 .photo-caption {

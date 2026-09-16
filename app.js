@@ -75,23 +75,6 @@
     return rawFileUrl(path);
   }
 
-  const imageLoadCache = new Map();
-
-  function loadImageUrl(url) {
-    const cached = imageLoadCache.get(url);
-    if (cached) return cached;
-    const promise = new Promise((resolve, reject) => {
-      const loader = new Image();
-      loader.decoding = "async";
-      loader.onload = () => resolve(loader);
-      loader.onerror = () => reject(new Error(`Failed to load image: ${url}`));
-      loader.src = url;
-    });
-    imageLoadCache.set(url, promise);
-    promise.catch(() => imageLoadCache.delete(url));
-    return promise;
-  }
-
   function apiUrl(path) {
     const { owner, repo } = getRepoInfo();
     return `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
@@ -144,7 +127,7 @@
 
   function attachSeriesThumb(figure, slug, photo, imagesRoot) {
     const fullUrl = photo.download_url;
-    const previewUrl = imageFileUrl(`${imagesRoot}/${slug}/thumbs/${photo.name}`);
+    const previewUrl = rawFileUrl(`${imagesRoot}/${slug}/thumbs/${photo.name}`);
     const img = document.createElement("img");
     img.src = previewUrl;
     img.alt = titleFromSlug(slug);
@@ -245,7 +228,7 @@
           card.className = "thumb-card";
           card.href = `photo.html?series=${encodeURIComponent(slug)}&file=${encodeURIComponent(p.name)}`;
           const fullUrl = p.download_url;
-          const previewUrl = imageFileUrl(`${imagesRoot}/${slug}/thumbs/${p.name}`);
+          const previewUrl = rawFileUrl(`${imagesRoot}/${slug}/thumbs/${p.name}`);
           card.innerHTML = `<img src="${previewUrl}" alt="${fileName(p.name)}" loading="lazy" decoding="async" />`;
           const img = card.querySelector("img");
           img.addEventListener("error", () => {
@@ -307,26 +290,46 @@
     const photoUrl = (name) =>
       `photo.html?series=${encodeURIComponent(slug)}&file=${encodeURIComponent(name)}`;
 
-    const photoAssetUrls = (name) => {
-      const rel = `${imagesRoot}/${slug}/${name}`;
-      return {
-        full: imageFileUrl(rel),
-        fullRaw: rawFileUrl(rel),
-        thumb: imageFileUrl(`${imagesRoot}/${slug}/thumbs/${name}`),
-        thumbRaw: rawFileUrl(`${imagesRoot}/${slug}/thumbs/${name}`)
+    const photoSrc = (name) => imageFileUrl(`${imagesRoot}/${slug}/${name}`);
+    const photoSrcRaw = (name) => rawFileUrl(`${imagesRoot}/${slug}/${name}`);
+
+    const showPhoto = (photo, { updateHistory = false, replace = false } = {}) => {
+      const title = fileName(photo.name);
+      const cdnUrl = photoSrc(photo.name);
+      const rawUrl = photoSrcRaw(photo.name);
+
+      img.loading = "eager";
+      img.fetchPriority = "high";
+      img.decoding = "async";
+      img.onload = () => {
+        if (stage) stage.classList.remove("is-loading");
       };
+      img.onerror = () => {
+        if (img.src !== rawUrl) {
+          img.src = rawUrl;
+          return;
+        }
+        if (stage) stage.classList.remove("is-loading");
+      };
+
+      if (img.src !== cdnUrl) {
+        if (stage) stage.classList.add("is-loading");
+        img.src = cdnUrl;
+      }
+
+      img.alt = title;
+      caption.textContent = title;
+      document.title = `${title} | ${cfg.siteTitle || "My Photography"}`;
+      if (updateHistory) {
+        const state = { series: slug, file: photo.name };
+        const url = photoUrl(photo.name);
+        if (replace) {
+          history.replaceState(state, "", url);
+        } else {
+          history.pushState(state, "", url);
+        }
+      }
     };
-
-    const loadFullPhoto = (urls) =>
-      loadImageUrl(urls.full)
-        .catch(() => loadImageUrl(urls.fullRaw))
-        .catch(() => loadImageUrl(urls.thumb))
-        .catch(() => loadImageUrl(urls.thumbRaw));
-
-    const loadThumbPhoto = (urls) =>
-      loadImageUrl(urls.thumb).catch(() => loadImageUrl(urls.thumbRaw));
-
-    let activePhotoLoadId = 0;
 
     const findIndex = (photos, name) => {
       const decoded = decodeURIComponent(name);
@@ -342,60 +345,6 @@
 
       let index = findIndex(photos, file);
       if (index < 0) index = 0;
-
-      const prefetchPhotoNeighbors = (centerIndex) => {
-        [-2, -1, 1, 2].forEach((offset) => {
-          const i = centerIndex + offset;
-          if (i < 0 || i >= photos.length) return;
-          const urls = photoAssetUrls(photos[i].name);
-          loadThumbPhoto(urls).catch(() => {});
-          loadFullPhoto(urls).catch(() => {});
-        });
-      };
-
-      const showPhoto = (photo, { updateHistory = false, replace = false } = {}) => {
-        const title = fileName(photo.name);
-        const urls = photoAssetUrls(photo.name);
-        const loadId = ++activePhotoLoadId;
-        let appliedFull = false;
-
-        caption.textContent = title;
-        img.alt = title;
-        document.title = `${title} | ${cfg.siteTitle || "My Photography"}`;
-        if (updateHistory) {
-          const state = { series: slug, file: photo.name };
-          const url = photoUrl(photo.name);
-          if (replace) {
-            history.replaceState(state, "", url);
-          } else {
-            history.pushState(state, "", url);
-          }
-        }
-
-        if (stage) stage.classList.add("is-loading");
-
-        const applySrc = (url, isFull) => {
-          if (loadId !== activePhotoLoadId) return;
-          img.src = url;
-          if (isFull) appliedFull = true;
-          if (stage) stage.classList.remove("is-loading");
-        };
-
-        loadFullPhoto(urls)
-          .then((loaded) => applySrc(loaded.src, true))
-          .catch(() => {
-            if (loadId === activePhotoLoadId && stage) stage.classList.remove("is-loading");
-          });
-
-        loadThumbPhoto(urls)
-          .then((loaded) => {
-            if (loadId !== activePhotoLoadId || appliedFull) return;
-            img.src = loaded.src;
-          })
-          .catch(() => {});
-
-        prefetchPhotoNeighbors(index);
-      };
 
       showPhoto(photos[index], { updateHistory: true, replace: true });
 
@@ -440,17 +389,7 @@
         }
       });
     } catch (err) {
-      const urls = photoAssetUrls(file);
-      img.alt = fileName(file);
-      loadFullPhoto(urls)
-        .then((loaded) => {
-          img.src = loaded.src;
-        })
-        .catch(() =>
-          loadThumbPhoto(urls).then((loaded) => {
-            img.src = loaded.src;
-          })
-        );
+      showPhoto({ name: file });
     }
   }
 
