@@ -226,6 +226,7 @@ a {
   border: none;
   background: #fff;
   padding: 0;
+  cursor: pointer;
 }
 
 .photo-frame img {

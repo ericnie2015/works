@@ -297,6 +297,14 @@
         });
       };
 
+      const frame = document.querySelector(".photo-frame");
+      frame.addEventListener("click", (e) => {
+        if (e.button !== 0) return;
+        const rect = frame.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        goTo(x < rect.width / 2 ? index - 1 : index + 1);
+      });
+
       document.addEventListener("keydown", (e) => {
         if (e.target.closest("input, textarea, select, [contenteditable='true']")) return;
 
