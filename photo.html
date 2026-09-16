@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Photo</title>
-    <link rel="stylesheet" href="styles.css?v=6" />
+    <link rel="stylesheet" href="styles.css?v=7" />
   </head>
   <body class="photo-page">
     <header class="site-header">
@@ -19,7 +19,15 @@
       <p class="page-subtitle" id="photo-subtitle"></p>
 
       <div class="photo-frame">
-        <img id="photo-image" src="" alt="" />
+        <div class="photo-stage">
+          <button type="button" class="photo-nav photo-nav-prev" id="photo-prev" aria-label="Previous photo">
+            <span aria-hidden="true">‹</span>
+          </button>
+          <img id="photo-image" src="" alt="" />
+          <button type="button" class="photo-nav photo-nav-next" id="photo-next" aria-label="Next photo">
+            <span aria-hidden="true">›</span>
+          </button>
+        </div>
         <div class="photo-caption" id="photo-caption"></div>
       </div>
 
@@ -29,7 +37,7 @@
     </main>
 
     <script src="site-config.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=9"></script>
     <script>
       window.PortfolioApp.initHeader();
       window.PortfolioApp.loadPhotoPage();

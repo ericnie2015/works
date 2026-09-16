@@ -250,16 +250,26 @@
     const { imagesRoot } = getRepoInfo();
     const img = document.getElementById("photo-image");
     const caption = document.getElementById("photo-caption");
+    const prevBtn = document.getElementById("photo-prev");
+    const nextBtn = document.getElementById("photo-next");
+    const stage = document.querySelector(".photo-stage");
 
     const photoUrl = (name) =>
       `photo.html?series=${encodeURIComponent(slug)}&file=${encodeURIComponent(name)}`;
 
-    const showPhoto = (photo, { updateHistory = false, replace = false } = {}) => {
+    const updateNavButtons = (photoCount, currentIndex) => {
+      if (!prevBtn || !nextBtn) return;
+      prevBtn.disabled = currentIndex <= 0;
+      nextBtn.disabled = currentIndex >= photoCount - 1;
+    };
+
+    const showPhoto = (photo, photoCount, currentIndex, { updateHistory = false, replace = false } = {}) => {
       const title = fileName(photo.name);
       img.src = rawFileUrl(`${imagesRoot}/${slug}/${photo.name}`);
       img.alt = title;
       caption.textContent = title;
       document.title = `${title} | ${cfg.siteTitle || "My Photography"}`;
+      updateNavButtons(photoCount, currentIndex);
       if (updateHistory) {
         const state = { series: slug, file: photo.name };
         const url = photoUrl(photo.name);
@@ -286,24 +296,40 @@
       let index = findIndex(photos, file);
       if (index < 0) index = 0;
 
-      showPhoto(photos[index], { updateHistory: true, replace: true });
+      showPhoto(photos[index], photos.length, index, { updateHistory: true, replace: true });
 
       const goTo = (nextIndex, { historyMode = "push" } = {}) => {
         if (nextIndex < 0 || nextIndex >= photos.length) return;
         index = nextIndex;
-        showPhoto(photos[index], {
+        showPhoto(photos[index], photos.length, index, {
           updateHistory: true,
           replace: historyMode === "replace"
         });
       };
 
-      const frame = document.querySelector(".photo-frame");
-      frame.addEventListener("click", (e) => {
-        if (e.button !== 0) return;
-        const rect = frame.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        goTo(x < rect.width / 2 ? index - 1 : index + 1);
-      });
+      if (prevBtn) {
+        prevBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          goTo(index - 1);
+        });
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          goTo(index + 1);
+        });
+      }
+      if (stage) {
+        stage.addEventListener("click", (e) => {
+          if (e.target.closest(".photo-nav")) return;
+          if (e.button !== 0) return;
+          const rect = stage.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          goTo(x < rect.width / 2 ? index - 1 : index + 1);
+        });
+      }
 
       document.addEventListener("keydown", (e) => {
         if (e.target.closest("input, textarea, select, [contenteditable='true']")) return;
@@ -323,11 +349,12 @@
         const i = findIndex(photos, currentFile);
         if (i >= 0) {
           index = i;
-          showPhoto(photos[index]);
+          showPhoto(photos[index], photos.length, index);
         }
       });
     } catch (err) {
-      showPhoto({ name: file });
+      showPhoto({ name: file }, 1, 0);
+      updateNavButtons(1, 0);
     }
   }
 
